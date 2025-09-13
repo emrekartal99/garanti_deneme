@@ -1,13 +1,8 @@
 /**
  * Garanti BBVA Account Transactions API Client
  * 
- * This client tests the Garanti BBVA Account Transactions API
- * in the Development Sandbox Environment.
- * 
- * Key Requirements:
- * - OAuth 2.0 Client Credentials authentication
- * - Fresh token required for each API call (single-use tokens)
- * - Development Sandbox Service environment
+ * Professional implementation using environment variables for security
+ * Uses the exact requirements from documentation
  */
 
 const https = require('https');
@@ -16,84 +11,90 @@ const config = require('./config');
 
 class GarantiBBVAApiClient {
   constructor() {
-    this.config = config;
     this.currentToken = null;
+    this.logEnvironmentInfo();
   }
 
   /**
-   * Get a fresh OAuth 2.0 access token
-   * Note: Tokens can only be used once per documentation
+   * Log environment configuration (for debugging)
+   */
+  logEnvironmentInfo() {
+    if (config.APP_SETTINGS.enableDebugLogs) {
+      console.log('🔧 Configuration loaded:');
+      console.log(`   Environment: ${config.APP_SETTINGS.environment}`);
+      console.log(`   Client ID: ${config.CLIENT_ID}`);
+      console.log(`   Client Secret: ${config.CLIENT_SECRET.substring(0, 8)}...`);
+      console.log(`   API Base URL: ${config.API_BASE_URL}`);
+      console.log(`   Debug Logs: ${config.APP_SETTINGS.enableDebugLogs}`);
+    }
+  }
+
+  /**
+   * Get fresh OAuth token (required for each API call per documentation)
    */
   async getOAuthToken() {
     return new Promise((resolve, reject) => {
       const postData = querystring.stringify({
-        grant_type: this.config.OAUTH_CONFIG.GRANT_TYPE,
-        client_id: this.config.OAUTH_CONFIG.CLIENT_ID,
-        client_secret: this.config.OAUTH_CONFIG.CLIENT_SECRET,
-        scope: this.config.OAUTH_CONFIG.SCOPE
+        grant_type: config.OAUTH_SETTINGS.grantType,
+        client_id: config.CLIENT_ID,
+        client_secret: config.CLIENT_SECRET,
+        scope: config.OAUTH_SETTINGS.scope
       });
 
-      const tokenUrl = new URL(this.config.API_CONFIG.BASE_URL + this.config.API_CONFIG.TOKEN_ENDPOINT);
+      const tokenUrl = new URL(config.API_BASE_URL + config.TOKEN_ENDPOINT);
       const options = {
         hostname: tokenUrl.hostname,
         port: tokenUrl.port || 443,
         path: tokenUrl.pathname,
         method: 'POST',
         headers: {
-          'Content-Type': this.config.HEADERS.FORM_CONTENT_TYPE,
-          'Content-Length': Buffer.byteLength(postData),
-          'Accept': this.config.HEADERS.ACCEPT
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(postData)
         },
-        timeout: this.config.APP_CONFIG.REQUEST_TIMEOUT
+        timeout: config.APP_SETTINGS.requestTimeout
       };
 
-      this.log(`🔑 Requesting OAuth token from: ${tokenUrl.href}`);
-      this.log(`📋 Client ID: ${this.config.OAUTH_CONFIG.CLIENT_ID}`);
-      this.log(`🎯 Scope: ${this.config.OAUTH_CONFIG.SCOPE}`);
+      console.log(`🔑 Getting OAuth token from: ${tokenUrl.href}`);
+      console.log(`📋 Client ID: ${config.CLIENT_ID}`);
+      console.log(`🎯 Scope: ${config.OAUTH_SETTINGS.scope}`);
 
       const req = https.request(options, (res) => {
         let data = '';
-        
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        
+        res.on('data', chunk => data += chunk);
         res.on('end', () => {
-          this.log(`📡 Token Response Status: ${res.statusCode}`);
+          console.log(`📡 Token Response Status: ${res.statusCode}`);
           
           try {
             const response = JSON.parse(data);
             
-            if (res.statusCode === this.config.API_RESPONSE_CODES.SUCCESS && response.access_token) {
+            if (res.statusCode === config.HTTP_CODES.SUCCESS && response.access_token) {
               this.currentToken = response.access_token;
-              this.log('✅ Fresh OAuth token obtained successfully');
-              this.log(`🎫 Token: ${response.access_token.substring(0, 20)}...`);
-              
+              console.log('✅ Fresh token obtained successfully');
+              console.log(`🎫 Token: ${response.access_token.substring(0, 20)}...`);
               if (response.expires_in) {
-                this.log(`⏰ Token expires in: ${response.expires_in} seconds`);
+                console.log(`⏰ Token expires in: ${response.expires_in} seconds`);
               }
-              
               resolve(response.access_token);
             } else {
-              this.log('❌ OAuth token request failed');
-              this.logError('Token Response', response);
-              reject(new Error(`OAuth token request failed: ${JSON.stringify(response)}`));
+              console.log('❌ Token request failed');
+              console.log('Response:', JSON.stringify(response, null, 2));
+              reject(new Error(`Token request failed: ${JSON.stringify(response)}`));
             }
           } catch (error) {
-            this.log('❌ Failed to parse token response');
-            this.log('📄 Raw response:', data);
+            console.log('❌ Failed to parse token response');
+            console.log('Raw response:', data);
             reject(error);
           }
         });
       });
 
-      req.on('error', (error) => {
-        this.log('❌ Token request network error:', error.message);
+      req.on('error', error => {
+        console.log('❌ Token request error:', error.message);
         reject(error);
       });
 
       req.on('timeout', () => {
-        this.log('❌ Token request timeout');
+        console.log('❌ Token request timeout');
         req.destroy();
         reject(new Error('Token request timeout'));
       });
@@ -106,79 +107,65 @@ class GarantiBBVAApiClient {
   /**
    * Call Account Transactions API with fresh token
    */
-  async getAccountTransactions(customData = null) {
+  async getAccountTransactions() {
     return new Promise((resolve, reject) => {
-      // Use custom data or default test data
-      const requestData = customData || {
-        consentId: this.config.TEST_DATA.CONSENT_ID,
-        unitNum: this.config.TEST_DATA.UNIT_NUM,
-        accountNum: this.config.TEST_DATA.ACCOUNT_NUM,
-        IBAN: this.config.TEST_DATA.IBAN,
-        startDate: this.config.TEST_DATA.START_DATE,
-        endDate: this.config.TEST_DATA.END_DATE,
-        transactionId: this.config.TEST_DATA.TRANSACTION_ID,
-        pageIndex: this.config.TEST_DATA.PAGE_INDEX,
-        pageSize: this.config.TEST_DATA.PAGE_SIZE
-      };
-
+      const requestData = config.TEST_DATA;
       const postData = JSON.stringify(requestData);
-      const apiUrl = new URL(this.config.API_CONFIG.BASE_URL);
       
+      const apiUrl = new URL(config.API_BASE_URL);
       const options = {
         hostname: apiUrl.hostname,
         port: apiUrl.port || 443,
-        path: this.config.API_CONFIG.ACCOUNT_TRANSACTIONS_ENDPOINT,
+        path: config.TRANSACTIONS_ENDPOINT,
         method: 'POST',
         headers: {
-          'Content-Type': this.config.HEADERS.CONTENT_TYPE,
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.currentToken}`,
-          'Content-Length': Buffer.byteLength(postData),
-          'Accept': this.config.HEADERS.ACCEPT
+          'Content-Length': Buffer.byteLength(postData)
         },
-        timeout: this.config.APP_CONFIG.REQUEST_TIMEOUT
+        timeout: config.APP_SETTINGS.requestTimeout
       };
 
-      this.log(`\n🌐 Making API call to: ${this.config.API_CONFIG.BASE_URL}${this.config.API_CONFIG.ACCOUNT_TRANSACTIONS_ENDPOINT}`);
-      this.log(`🔐 Using Bearer token: ${this.currentToken.substring(0, 20)}...`);
-      this.log(`📋 Request Data:`, requestData);
+      console.log(`\n🌐 Making API call to: ${config.API_BASE_URL}${config.TRANSACTIONS_ENDPOINT}`);
+      console.log(`🔐 Using Bearer token: ${this.currentToken.substring(0, 20)}...`);
+      
+      if (config.APP_SETTINGS.enableDebugLogs) {
+        console.log('📋 Request data:', JSON.stringify(requestData, null, 2));
+      }
 
       const req = https.request(options, (res) => {
         let data = '';
-        
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        
+        res.on('data', chunk => data += chunk);
         res.on('end', () => {
-          this.log(`📡 API Response Status: ${res.statusCode}`);
+          console.log(`📡 API Response Status: ${res.statusCode}`);
           
           try {
             const response = JSON.parse(data);
             
-            if (res.statusCode === this.config.API_RESPONSE_CODES.SUCCESS) {
-              this.log('✅ API call successful!');
+            if (res.statusCode === config.HTTP_CODES.SUCCESS) {
+              console.log('✅ API call successful!');
               resolve(response);
             } else {
-              this.log('❌ API call failed');
-              this.logError('API Response', response);
+              console.log('❌ API call failed');
+              console.log('Response:', JSON.stringify(response, null, 2));
               this.analyzeError(res.statusCode, response);
-              reject(new Error(`API call failed with status ${res.statusCode}: ${JSON.stringify(response)}`));
+              reject(new Error(`API call failed: ${JSON.stringify(response)}`));
             }
           } catch (error) {
-            this.log('❌ Failed to parse API response');
-            this.log('📄 Raw response:', data);
+            console.log('❌ Failed to parse API response');
+            console.log('Raw response:', data);
             reject(error);
           }
         });
       });
 
-      req.on('error', (error) => {
-        this.log('❌ API request network error:', error.message);
+      req.on('error', error => {
+        console.log('❌ API request error:', error.message);
         reject(error);
       });
 
       req.on('timeout', () => {
-        this.log('❌ API request timeout');
+        console.log('❌ API request timeout');
         req.destroy();
         reject(new Error('API request timeout'));
       });
@@ -189,152 +176,121 @@ class GarantiBBVAApiClient {
   }
 
   /**
-   * Analyze and provide specific error guidance
+   * Analyze errors and provide guidance
    */
   analyzeError(statusCode, response) {
-    this.log('\n🔍 Error Analysis:');
+    console.log('\n🔍 Error Analysis:');
     
     switch (statusCode) {
-      case this.config.API_RESPONSE_CODES.UNAUTHORIZED:
-        this.log('🚫 401 Unauthorized - Authentication failed');
-        this.log('💡 Possible causes:');
-        this.log('   • OAuth credentials are invalid or inactive');
-        this.log('   • Access token expired or already used (single-use requirement)');
-        this.log('   • Application not approved for API access');
+      case config.HTTP_CODES.UNAUTHORIZED:
+        console.log('🚫 401 Unauthorized - Authentication failed');
+        console.log('💡 Possible causes:');
+        console.log('   • OAuth credentials invalid or inactive');
+        console.log('   • Application not approved for API access');
+        console.log('   • Consent ID invalid for your account');
+        console.log('   • Access token expired or already used (single-use requirement)');
         break;
         
-      case this.config.API_RESPONSE_CODES.BAD_REQUEST:
-        this.log('🚫 400 Bad Request - Invalid request parameters');
-        if (response && response.result && response.result.reasonCode) {
-          const reasonCode = response.result.reasonCode;
-          const errorMessage = this.config.BUSINESS_ERROR_CODES[reasonCode];
-          if (errorMessage) {
-            this.log(`💡 Reason Code ${reasonCode}: ${errorMessage}`);
-          }
+      case config.HTTP_CODES.BAD_REQUEST:
+        const reasonCode = response?.result?.reasonCode;
+        const errorMessage = config.ERROR_CODES[reasonCode];
+        console.log(`🚫 400 Bad Request - Reason Code ${reasonCode}`);
+        if (errorMessage) {
+          console.log(`💡 ${errorMessage}`);
         }
         break;
         
-      case this.config.API_RESPONSE_CODES.FORBIDDEN:
-        this.log('🚫 403 Forbidden - Access denied');
-        this.log('💡 Your application may not have permission for this API');
+      case config.HTTP_CODES.FORBIDDEN:
+        console.log('🚫 403 Forbidden - Access denied');
+        console.log('💡 Your application may not have permission for this API');
         break;
         
-      case this.config.API_RESPONSE_CODES.RATE_LIMIT:
-        this.log('🚫 429 Rate Limit - Too many requests');
-        this.log('💡 Wait before making additional requests');
+      case config.HTTP_CODES.RATE_LIMIT:
+        console.log('🚫 429 Rate Limit - Too many requests');
+        console.log('💡 Wait before making additional requests');
         break;
         
-      case this.config.API_RESPONSE_CODES.INTERNAL_ERROR:
-        this.log('🚫 500 Internal Server Error - Server-side issue');
-        this.log('💡 This is likely a temporary server problem');
+      case config.HTTP_CODES.INTERNAL_ERROR:
+        console.log('🚫 500 Internal Server Error - Server-side issue');
+        console.log('💡 This is likely a temporary server problem');
         break;
         
       default:
-        this.log(`🚫 HTTP ${statusCode} - Unexpected error`);
+        console.log(`🚫 HTTP ${statusCode} - Unexpected error`);
     }
   }
 
   /**
-   * Display API response results
+   * Display API results
    */
   displayResults(response) {
-    this.log('\n🎉 SUCCESS! API Response:');
-    this.log('='.repeat(60));
+    console.log('\n🎉 SUCCESS! API Response:');
+    console.log('='.repeat(50));
     
     if (response.result) {
-      this.log(`📊 Return Code: ${response.result.returnCode}`);
-      this.log(`📊 Reason Code: ${response.result.reasonCode}`);
-      this.log(`📊 Message: ${response.result.messageText}`);
+      console.log(`📊 Return Code: ${response.result.returnCode}`);
+      console.log(`📊 Reason Code: ${response.result.reasonCode}`);
+      console.log(`📊 Message: ${response.result.messageText}`);
     }
     
     if (response.transactions && response.transactions.length > 0) {
-      this.log(`\n💰 Found ${response.transactions.length} transactions:\n`);
+      console.log(`\n💰 Found ${response.transactions.length} transactions:\n`);
       
       response.transactions.forEach((transaction, index) => {
-        this.log(`Transaction ${index + 1}:`);
-        this.log(`  👤 Customer: ${transaction.customerName}`);
-        this.log(`  📅 Date: ${transaction.activityDate} (Value: ${transaction.valueDate})`);
-        this.log(`  💵 Amount: ${transaction.amount} ${transaction.currencyCode || 'TL'}`);
-        this.log(`  📈 Type: ${transaction.txnCreditDebitIndicator === 'A' ? 'Credit' : 'Debit'}`);
-        this.log(`  📝 Description: ${transaction.explanation}`);
-        this.log(`  💰 Balance After: ${transaction.balanceAfterTransaction}`);
-        this.log(`  🔖 Transaction ID: ${transaction.transactionId}`);
-        this.log(`  🏷️  Classification: ${transaction.clasificationCode}`);
+        console.log(`Transaction ${index + 1}:`);
+        console.log(`  👤 Customer: ${transaction.customerName}`);
+        console.log(`  📅 Date: ${transaction.activityDate} (Value: ${transaction.valueDate})`);
+        console.log(`  💵 Amount: ${transaction.amount} ${transaction.currencyCode || 'TL'}`);
+        console.log(`  📈 Type: ${transaction.txnCreditDebitIndicator === 'A' ? 'Credit' : 'Debit'}`);
+        console.log(`  📝 Description: ${transaction.explanation}`);
+        console.log(`  💰 Balance: ${transaction.balanceAfterTransaction}`);
+        console.log(`  🔖 Transaction ID: ${transaction.transactionId}`);
         
-        // Display enrichment information if available
-        if (transaction.enrichmentInformation && transaction.enrichmentInformation.length > 0) {
-          this.log(`  ℹ️  Enrichment Data:`);
-          transaction.enrichmentInformation.forEach(enrichment => {
-            this.log(`    • ${enrichment.enrichmentCode}: ${JSON.stringify(enrichment.enrichmentValue, null, 4).replace(/\n/g, '\n      ')}`);
-          });
+        // Show enrichment data if debug mode
+        if (config.APP_SETTINGS.enableDebugLogs && transaction.enrichmentInformation) {
+          console.log(`  ℹ️  Enrichment:`, JSON.stringify(transaction.enrichmentInformation, null, 4));
         }
-        this.log('  ' + '-'.repeat(50));
+        console.log('  ---');
       });
     } else {
-      this.log('\n📋 No transactions found');
-      this.log('💡 This might be expected for test data or the specified date range');
+      console.log('\n📋 No transactions found (might be expected for test data)');
     }
-  }
-
-  /**
-   * Logging utility
-   */
-  log(message, data = null) {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${message}`);
-    if (data && this.config.APP_CONFIG.ENABLE_DEBUG_LOGS) {
-      console.log(JSON.stringify(data, null, 2));
-    }
-  }
-
-  /**
-   * Error logging utility
-   */
-  logError(title, error) {
-    this.log(`❌ ${title}:`);
-    console.log(JSON.stringify(error, null, 2));
   }
 }
 
 /**
- * Main test execution function
+ * Main test function
  */
 async function runTest() {
   const client = new GarantiBBVAApiClient();
   
-  client.log('🚀 Starting Garanti BBVA Account Transactions API Test');
-  client.log('📋 Environment: DEVELOPMENT SANDBOX SERVICE');
-  client.log('⚠️  Note: Access tokens are single-use only (per documentation)');
-  client.log('🔧 Configuration loaded from config.js\n');
+  console.log('🚀 Testing Garanti BBVA Account Transactions API');
+  console.log('📋 Environment: DEVELOPMENT SANDBOX SERVICE');
+  console.log('⚠️  Note: Using fresh token for each call (single-use requirement)\n');
   
   try {
-    // Step 1: Get fresh OAuth token (required for each API call)
-    const accessToken = await client.getOAuthToken();
+    // Step 1: Get fresh OAuth token
+    await client.getOAuthToken();
     
-    // Step 2: Call Account Transactions API
+    // Step 2: Call API with fresh token
     const response = await client.getAccountTransactions();
     
     // Step 3: Display results
     client.displayResults(response);
     
-    client.log('\n✅ Test completed successfully!');
+    console.log('\n✅ Test completed successfully!');
     
   } catch (error) {
-    client.log('\n💥 Test failed:', error.message);
+    console.log('\n💥 Test failed:', error.message);
     
-    client.log('\n🔧 Troubleshooting Guide:');
-    client.log('1. Verify your OAuth credentials in the developer portal');
-    client.log('2. Check if your application is approved and active');
-    client.log('3. Ensure you\'re using the correct sandbox environment');
-    client.log('4. Confirm the consent ID is valid for your account');
-    client.log('5. Check network connectivity and firewall settings');
+    console.log('\n🔧 Next Steps:');
+    console.log('1. Verify OAuth credentials in developer portal');
+    console.log('2. Check application approval status');
+    console.log('3. Confirm sandbox environment access');
+    console.log('4. Validate .env configuration');
+    console.log('5. Contact support: ETicaretDestek@garantibbva.com.tr');
     
-    client.log('\n📞 Support Resources:');
-    client.log('• Developer Portal: https://developers.garantibbva.com.tr');
-    client.log('• Support Email: ETicaretDestek@garantibbva.com.tr');
-    client.log('• API Documentation: Available in /docs folder');
-    
-    // Exit with error code for CI/CD
+    // Exit with error for CI/CD
     process.exit(1);
   }
 }
@@ -345,7 +301,7 @@ module.exports = {
   runTest
 };
 
-// Run test if called directly
+// Run if called directly
 if (require.main === module) {
   runTest();
 }
