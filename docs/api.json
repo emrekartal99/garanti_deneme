@@ -1,0 +1,1319 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Account Transactions",
+    "version": "1.0.0",
+    "description": "Account Transactions service of Electronic Bank Statement is used to get transactions with enriched information of given accounts in between specified time interval.  \n\nThis API is in the cash management category.  \n\nBefore your application can access to the API, it must obtain a new  Access Token for each request. The access token can only be used once."
+  },
+  "servers": [
+    {
+      "url": "[https://apis.garantibbva.com.tr:443"
+    }
+  ],
+  "security": [
+    {},
+    {
+      "OauthClientCredentials": [
+        "oob"
+      ]
+    }
+  ],
+  "paths": {
+    "//balancesandmovements/accountinformation/transaction/v1/gettransactions": {
+      "post": {
+        "summary": "Account Transactions Service",
+        "description": "Returns Account Transactions of Specified Accounts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthorizationTokenHeader"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourceBody"
+              },
+              "example": {
+                "consentId": "3e09da8a-ae9c-50bc-b34a-c61531729dbe",
+                "unitNum": "295",
+                "accountNum": "6291296",
+                "IBAN": "TR620006200029500006291296",
+                "startDate": "2020-12-25T12:53:07.867",
+                "endDate": "2020-12-25T17:53:07.867",
+                "transactionId": "",
+                "pageIndex": 1,
+                "pageSize": 100
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200POST"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/InvalidCredentials"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiPlanLimitExceeded"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "AuthorizationTokenHeader": {
+        "name": "Authorization",
+        "in": "header",
+        "description": "Basic Access token information",
+        "example": "Basic ZGVtbzpwQDU1dzByZA==",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "OauthClientCredentials": {
+        "description": "The APIs are protected by OAuth 2.0 Authentication. With OAuth 2.0, the Grant Type is used Client Credentials.\nFor the Client Credentials grant type, the flow is as follows:\n\n  1. Obtain OAuth 2.0 Client Credentials from the Garanti BBVA API Store via Manage Applications page\n\n  2. Request an access token from Garanti BBVA API Store Token Endpoint with the Client ID, Client Secret, Grant Type and Redirect URI\n\n  3. The access token is redirected to the specified URL as defined by the redirect_uri\n\n\nBefore your application can access the APIs, it must obtain a new access token for each request. The access token can be used only one time.",
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://apis.garantibbva.com.tr/auth/oauth/v2/token",
+            "scopes": {
+              "oob": "(Out of Band) Scope for authorized developers"
+            }
+          }
+        }
+      }
+    },
+    "headers": {
+      "Access-Control-Allow-Origin": {
+        "description": "*.garantibbva.com.tr",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "GUID": {
+        "description": "It is used to process trace. The GUID  must be a unique value for each request",
+        "example": "123456789012345678901234567",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "ResourceBody": {
+        "title": "RequestResource",
+        "type": "object",
+        "required": [
+          "consentId",
+          "startDate",
+          "endtDate"
+        ],
+        "properties": {
+          "consentId": {
+            "type": "string",
+            "description": "Consent ID that is get after enrollment process",
+            "example": "3e09da8a-ae9c-50bc-b34a-c61531729dbe"
+          },
+          "unitNum": {
+            "type": "integer",
+            "description": "Branch number of account number",
+            "example": 295
+          },
+          "accountNum": {
+            "type": "integer",
+            "description": "Number of the account which details are requested",
+            "example": 6291296
+          },
+          "IBAN": {
+            "type": "string",
+            "description": "IBAN of the account number",
+            "example": "TR620006200029500006291296"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Start date of time interval that requested transactions take place `Format: YYYY-MM-DDTHH:mm:ss.fff`",
+            "example": "2020-12-25T12:53:07.867"
+          },
+          "endtDate": {
+            "type": "string",
+            "description": "End date of time interval that requested transactions take place `Format: YYYY-MM-DDTHH:mm:ss.fff`",
+            "example": "2020-12-25T17:53:07.867"
+          },
+          "transactionId": {
+            "type": "string",
+            "description": "Category code of transaction",
+            "example": ""
+          },
+          "pageIndex": {
+            "type": "integer",
+            "description": "Page index number",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "Number of transactions returned in each page",
+            "example": 20
+          }
+        }
+      },
+      "ResponseBody": {
+        "title": "ResponseBody",
+        "type": "array",
+        "items": {
+          "transaction": null,
+          "$ref": "#/components/schemas/Transaction"
+        }
+      },
+      "CommonPostResponse": {
+        "title": "PostResponse",
+        "type": "object",
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/Result"
+          },
+          "transactions": {
+            "$ref": "#/components/schemas/ResponseBody"
+          }
+        }
+      },
+      "Transaction": {
+        "title": "Transaction",
+        "description": "Transaction element core details",
+        "properties": {
+          "customerNum": {
+            "description": "Customer number",
+            "type": "integer"
+          },
+          "customerName": {
+            "description": "Customer name",
+            "type": "string"
+          },
+          "VKN": {
+            "description": "Tax number",
+            "type": "integer"
+          },
+          "TCKN": {
+            "description": "Identity number",
+            "type": "integer"
+          },
+          "productId": {
+            "description": "Unique identifier of the account",
+            "type": "integer"
+          },
+          "unitNum": {
+            "description": "Branch number of the account",
+            "type": "integer"
+          },
+          "accountNum": {
+            "description": "Account number",
+            "type": "integer"
+          },
+          "currencyCode": {
+            "description": "Currency code of the account",
+            "type": "string"
+          },
+          "IBAN": {
+            "description": "IBAN of the account",
+            "type": "string"
+          },
+          "activityDate": {
+            "description": "Accounting date of the transaction",
+            "type": "string"
+          },
+          "valueDate": {
+            "description": "Value date of the transaction",
+            "type": "string"
+          },
+          "txtnCreditDebitIndicator": {
+            "description": "Credit or debit indicator",
+            "type": "string"
+          },
+          "amount": {
+            "description": "Amount of the transaction",
+            "type": "number"
+          },
+          "balanceAfterTransaction": {
+            "description": "Remaining balance after transaction",
+            "type": "number"
+          },
+          "explanation": {
+            "description": "Explanation text of the transaction",
+            "type": "string"
+          },
+          "transactionId": {
+            "description": "Transaction id",
+            "type": "string"
+          },
+          "clasificationCode": {
+            "description": "Classification of the enrichment code",
+            "type": "string"
+          },
+          "corrVKN": {
+            "description": "Tax number of the corresponding customer",
+            "type": "integer"
+          },
+          "corrTCKN": {
+            "description": "Identity number of the corresponding customer",
+            "type": "integer"
+          },
+          "corrCustomerNum": {
+            "description": "Customer number of the corresponding customer",
+            "type": "integer"
+          },
+          "transactionReferenceId": {
+            "description": "Transaction reference number",
+            "type": "string"
+          },
+          "transactionInstanceId": {
+            "description": "Creation date of the transaction",
+            "type": "string"
+          },
+          "enrichmentInformation": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CORRACNT"
+                },
+                {
+                  "$ref": "#/components/schemas/MUS"
+                },
+                {
+                  "$ref": "#/components/schemas/HES"
+                },
+                {
+                  "$ref": "#/components/schemas/DTS"
+                },
+                {
+                  "$ref": "#/components/schemas/DEK"
+                },
+                {
+                  "$ref": "#/components/schemas/Maas-The-Dim"
+                },
+                {
+                  "$ref": "#/components/schemas/DOV"
+                },
+                {
+                  "$ref": "#/components/schemas/EFT"
+                }
+              ]
+            }
+          }
+        },
+        "example": {
+          "customerNum": 45245447,
+          "customerName": "DURU LTD ",
+          "VKN": 1194136989,
+          "TCKN": null,
+          "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+          "unitNum": 295,
+          "accountNum": 6291296,
+          "currencyCode": "TL",
+          "IBAN": "TR620006200029500006291296",
+          "activityDate": "2020-12-25",
+          "valueDate": "2020-12-28",
+          "txnCreditDebitIndicator": "A",
+          "amount": 1250.67,
+          "balanceAfterTransaction": 9836180.2,
+          "explanation": "00000",
+          "transactionId": "WPDT",
+          "clasificationCode": "NDTS",
+          "corrVKN": "1518410029",
+          "corrTCKN": null,
+          "corrCustomerNum": 45271413,
+          "transactionReferenceId": "2020-12-25T16:13:36.688516",
+          "transactionInstanceId": "2020-12-25T16:13:36.862988",
+          "enrichmentInformation": [
+            {
+              "enrichmentCode": "CORRACNT",
+              "enrichmentValue": {
+                "moduleName": "CORRACNT",
+                "productType": "Account",
+                "corrAccountNum": "6287369",
+                "corrUnitNum": "295",
+                "corrIBAN": "TR700006200029500006287369"
+              }
+            },
+            {
+              "enrichmentCode": "MUS",
+              "enrichmentValue": {
+                "moduleName": "MUS",
+                "nameSurnameText": "DURU LTD ",
+                "corrNameSurnameText": "DURU LTD "
+              }
+            },
+            {
+              "enrichmentCode": "HES",
+              "enrichmentValue": {
+                "moduleName": "HES",
+                "accountMainType": "M",
+                "accSubType": "S",
+                "accType": "A",
+                "productCode": "VDSTDUI",
+                "subProductCode": ""
+              }
+            },
+            {
+              "enrichmentCode": "DTS",
+              "enrichmentValue": {
+                "moduleName": "DTS",
+                "firmOriginalText": "",
+                "relatedInvText1": ""
+              }
+            },
+            {
+              "enrichmentCode": "DEK",
+              "enrichmentValue": {
+                "moduleName": "DEK",
+                "detailText": ""
+              }
+            }
+          ]
+        }
+      },
+      "CORRACNT": {
+        "title": "Corracnt",
+        "description": "CORRACNT enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "description": "Name of the module",
+            "type": "string"
+          },
+          "productType": {
+            "description": "Type of the product",
+            "type": "string"
+          },
+          "corrAccountNum": {
+            "description": "Corresponding account number",
+            "type": "integer"
+          },
+          "corrUnitNum": {
+            "description": "Corresponding unit number",
+            "type": "integer"
+          },
+          "corrIBAN": {
+            "description": "Corresponding IBAN",
+            "type": "string"
+          }
+        }
+      },
+      "MUS": {
+        "title": "Mus",
+        "description": "MUS enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "description": "Name of the module",
+            "type": "string"
+          },
+          "nameSurnameText": {
+            "description": "Name of the owner",
+            "type": "string"
+          },
+          "corrNameSurnameText": {
+            "description": "Name of the corresponding account owner",
+            "type": "integer"
+          }
+        }
+      },
+      "HES": {
+        "title": "Hes",
+        "description": "HES enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "description": "Name of the module",
+            "type": "string"
+          },
+          "accountMainType": {
+            "description": "Main type of the account",
+            "type": "string",
+            "enum": [
+              {
+                "M": "Deposit"
+              },
+              {
+                "K": "Credit"
+              },
+              {
+                "H": "Treasury"
+              }
+            ]
+          },
+          "accSubType": {
+            "description": "Sub type of the account",
+            "type": "string",
+            "enum": [
+              {
+                "K": "FCY Current Account"
+              },
+              {
+                "V": "Vostro"
+              },
+              {
+                "N": "Nostro"
+              },
+              {
+                "Z": "FCY NO Overdraft"
+              },
+              {
+                "Y": "FCY/LCY With Overdraft"
+              },
+              {
+                "X": "LCY No Overdraft"
+              },
+              {
+                "A": "LCY Commercial Deposit Account"
+              },
+              {
+                "C": "LCY Savings Account"
+              },
+              {
+                "E": "LCY Time Deposit Account"
+              },
+              {
+                "M": "FCY Time Deposit Account"
+              },
+              {
+                "Q": "Cheque Account`"
+              }
+            ]
+          },
+          "productCode": {
+            "description": "Product code of the account",
+            "type": "string"
+          },
+          "subProductCode": {
+            "description": "Sub product code of the account",
+            "type": "string"
+          }
+        }
+      },
+      "DTS": {
+        "title": "Dts",
+        "description": "DTS enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "description": "Name of the module",
+            "type": "string"
+          },
+          "firmOriginalText": {
+            "description": "Explanation text of firm",
+            "type": "string"
+          },
+          "relatedInvText1": {
+            "description": "Related invoice text",
+            "type": "string"
+          }
+        }
+      },
+      "DEK": {
+        "title": "Dek",
+        "description": "DEK enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "description": "Name of the module",
+            "type": "string"
+          },
+          "detailText": {
+            "description": "Explanation text",
+            "type": "string"
+          }
+        }
+      },
+      "Maas-The-Dim": {
+        "title": "MaasTheDim",
+        "description": "MAAS, THE, DIM enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "description": "Name of the module",
+            "type": "string"
+          },
+          "firmOriginalText1": {
+            "description": "Explanation text of firm",
+            "type": "string"
+          },
+          "txnId": {
+            "description": "Firmâs txnId (Garanti Connect field)",
+            "type": "string"
+          },
+          "ustrId": {
+            "description": "Unstructured id (Garanti Connect field)",
+            "type": "string"
+          }
+        }
+      },
+      "DOV": {
+        "title": "Dov",
+        "description": "DOV enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "description": "Name of the module",
+            "type": "string"
+          },
+          "processRate": {
+            "description": "Exchange rate of the transaction",
+            "type": "number"
+          }
+        }
+      },
+      "EFT": {
+        "title": "Eft",
+        "description": "EFT enrichment values",
+        "type": "object",
+        "properties": {
+          "moduleName": {
+            "type": "string",
+            "description": "Name of the module"
+          },
+          "corrBankNum": {
+            "type": "integer",
+            "description": "Corresponding bank EFT code"
+          },
+          "corrUnitNum": {
+            "type": "integer",
+            "description": "Corresponding unit number"
+          },
+          "corrBankCityNum": {
+            "type": "integer",
+            "description": "Corresponding bank city number"
+          },
+          "referenceNum": {
+            "type": "integer",
+            "description": "EFT reference number"
+          },
+          "rejectedMsgReferenceNum": {
+            "type": "integer",
+            "description": "EFT reference number of rejected message"
+          },
+          "valueDate": {
+            "type": "string",
+            "description": "Value date of the process `Format: YYYY-MM-DDTHH:mm:ss.fff`"
+          },
+          "msgType": {
+            "type": "string",
+            "description": "Process type of the message",
+            "enum": [
+              {
+                "KRED": "Payment to account"
+              },
+              {
+                "NORM": "Payment to name"
+              },
+              {
+                "KRED-KART": "Credit card payment"
+              },
+              {
+                "IADE": "Refund of the payment`"
+              }
+            ]
+          },
+          "senderIBANEFT": {
+            "type": "string",
+            "description": "IBAN of the sender"
+          },
+          "receiverIBANEFT": {
+            "type": "string",
+            "description": "IBAN of the receiver"
+          },
+          "senderName": {
+            "type": "string",
+            "description": "Name of the sender"
+          },
+          "receiverName": {
+            "type": "string",
+            "description": "Name of the receiver"
+          },
+          "remark": {
+            "type": "string",
+            "description": "Explanation text"
+          },
+          "senderVKN": {
+            "type": "integer",
+            "description": "Tax or identity number of the sender"
+          },
+          "corrAccountNum": {
+            "type": "string",
+            "description": "Owner account"
+          },
+          "corrGoAddress": {
+            "type": "string",
+            "description": "Corresponding address"
+          },
+          "rejectedDate": {
+            "type": "string",
+            "description": "Rejected date if applicable `Format: YYYYMMDD`"
+          },
+          "rejectedCode": {
+            "type": "string",
+            "description": "Rejected code if applicable",
+            "enum": [
+              {
+                "01": "Receiver information is missing or incorrect"
+              },
+              {
+                "02": "Account number and receiver name do not match"
+              },
+              {
+                "03": "Account is closed"
+              },
+              {
+                "04": "Account number is incorrect (i.e. IBAN has an error)"
+              },
+              {
+                "05": "Account is not suitable for EFT. (i.e. FX account)"
+              },
+              {
+                "06": "Refund based on refund request message"
+              },
+              {
+                "07": "Identity/Tax Number in the message is different from the number in participants record"
+              },
+              {
+                "08": "Sender information is missing or incorrect"
+              },
+              {
+                "09": "Receiver branch number is incorrect (in payments without IBAN)"
+              },
+              {
+                "10": "Account is only open for payments with refund message"
+              },
+              {
+                "11": "Receiver information and account number are not existed at the bank"
+              },
+              {
+                "99": "Other reasons (reject reason is mentioned in the explanation field)"
+              }
+            ]
+          }
+        }
+      },
+      "Result": {
+        "title": "ResultResponse",
+        "type": "object",
+        "properties": {
+          "returnCcode": {
+            "type": "string",
+            "description": "HTTP response code",
+            "example": 200
+          },
+          "reasonCode": {
+            "type": "string",
+            "description": "Default value is 1 (Success). When the service has any error, this field should be used. http Error Codes or Business Error Codes"
+          },
+          "messageText": {
+            "type": "string",
+            "description": "Return message text",
+            "example": "Success"
+          }
+        },
+        "example": {
+          "returnCode": 200,
+          "ReasonCode": "1",
+          "messageText": "Success"
+        }
+      }
+    },
+    "responses": {
+      "200POST": {
+        "description": "OK",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CommonPostResponse"
+            },
+            "example": {
+              "result": {
+                "returnCode": 200,
+                "reasonCode": 1,
+                "messageText": "Basarili"
+              },
+              "transactions": [
+                {
+                  "customerNum": 45245447,
+                  "customerName": "DURU LTD ",
+                  "VKN": 1194136989,
+                  "TCKN": null,
+                  "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+                  "unitNum": 295,
+                  "accountNum": 6291296,
+                  "currencyCode": "TL",
+                  "IBAN": "TR620006200029500006291296",
+                  "activityDate": "2020-12-25",
+                  "valueDate": "2020-12-28",
+                  "txnCreditDebitIndicator": "A",
+                  "amount": 1250.67,
+                  "balanceAfterTransaction": 9836180.2,
+                  "explanation": "00000",
+                  "transactionId": "WPDT",
+                  "clasificationCode": "NDTS",
+                  "corrVKN": "1518410029",
+                  "corrTCKN": null,
+                  "corrCustomerNum": 45271413,
+                  "transactionReferenceId": "2020-12-25T16:13:36.688516",
+                  "transactionInstanceId": "2020-12-25T16:13:36.862988",
+                  "enrichmentInformation": [
+                    {
+                      "enrichmentCode": "CORRACNT",
+                      "enrichmentValue": {
+                        "moduleName": "CORRACNT",
+                        "productType": "Account",
+                        "corrAccountNum": "6287369",
+                        "corrUnitNum": "295",
+                        "corrIBAN": "TR700006200029500006287369"
+                      }
+                    },
+                    {
+                      "enrichmentCode": "MUS",
+                      "enrichmentValue": {
+                        "moduleName": "MUS",
+                        "nameSurnameText": "DURU LTD ",
+                        "corrNameSurnameText": "DURU LTD "
+                      }
+                    },
+                    {
+                      "enrichmentCode": "HES",
+                      "enrichmentValue": {
+                        "moduleName": "HES",
+                        "accountMainType": "M",
+                        "accSubType": "S",
+                        "accType": "A",
+                        "productCode": "VDSTDUI",
+                        "subProductCode": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "DTS",
+                      "enrichmentValue": {
+                        "moduleName": "DTS",
+                        "firmOriginalText": "",
+                        "relatedInvText1": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "DEK",
+                      "enrichmentValue": {
+                        "moduleName": "DEK",
+                        "detailText": ""
+                      }
+                    }
+                  ]
+                },
+                {
+                  "customerNum": 45248653,
+                  "customerName": "DURU LTD ",
+                  "VKN": 1924326460,
+                  "TCKN": null,
+                  "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+                  "unitNum": 295,
+                  "accountNum": 6291335,
+                  "currencyCode": null,
+                  "IBAN": "TR760006200029500006291335",
+                  "activityDate": "2020-11-04",
+                  "valueDate": "2020-11-04",
+                  "txnCreditDebitIndicator": "B",
+                  "amount": 20,
+                  "balanceAfterTransaction": 1071.46,
+                  "explanation": "MAAS ODEMESI",
+                  "transactionId": "ELMS",
+                  "clasificationCode": "MAAS",
+                  "corrVKN": "1194136989",
+                  "corrTCKN": null,
+                  "corrCustomerNum": 45245447,
+                  "transactionReferenceId": "2020-12-25T13:31:16.79895",
+                  "transactionInstanceId": "2020-12-25T13:44:38.453646",
+                  "enrichmentInformation": [
+                    {
+                      "enrichmentCode": "CORRACNT",
+                      "enrichmentValue": {
+                        "moduleName": "CORRACNT",
+                        "productType": "Account",
+                        "corrAccountNum": "6291296",
+                        "corrUnitNum": "295",
+                        "corrIBAN": "TR620006200029500006291296"
+                      }
+                    },
+                    {
+                      "enrichmentCode": "DEK",
+                      "enrichmentValue": {
+                        "moduleName": "DEK",
+                        "detailText": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "HES",
+                      "enrichmentValue": {
+                        "moduleName": "HES",
+                        "accountMainType": "M",
+                        "accSubType": "S",
+                        "accType": "A",
+                        "productCode": "VDSTDUI",
+                        "subProductCode": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "MAAS",
+                      "enrichmentValue": {
+                        "moduleName": "MAAS",
+                        "firmOriginalText1": "TR10200SCAN008033",
+                        "txnId": "",
+                        "ustrId": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "MUS",
+                      "enrichmentValue": {
+                        "moduleName": "MUS",
+                        "nameSurnameText": "DURU LTD ",
+                        "corrNameSurnameText": "DURU LTD "
+                      }
+                    }
+                  ]
+                },
+                {
+                  "customerNum": 45245447,
+                  "customerName": "DURU LTD ",
+                  "VKN": 1194136989,
+                  "TCKN": null,
+                  "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+                  "unitNum": 295,
+                  "accountNum": 6291296,
+                  "currencyCode": "TL",
+                  "IBAN": "TR620006200029500006291296",
+                  "activityDate": "2020-12-25",
+                  "valueDate": "2020-12-25",
+                  "txnCreditDebitIndicator": "B",
+                  "amount": 38.55,
+                  "balanceAfterTransaction": 9835022.59,
+                  "explanation": "Para Transferi",
+                  "transactionId": "ELMP",
+                  "clasificationCode": "NTHE",
+                  "corrVKN": "1472052328",
+                  "corrTCKN": null,
+                  "corrCustomerNum": 45263420,
+                  "transactionReferenceId": "2020-12-25T14:17:12.094419",
+                  "transactionInstanceId": "2020-12-25T14:17:12.179689",
+                  "enrichmentInformation": [
+                    {
+                      "enrichmentCode": "CORRACNT",
+                      "enrichmentValue": {
+                        "moduleName": "CORRACNT",
+                        "productType": "Account",
+                        "corrAccountNum": "6288869",
+                        "corrUnitNum": "295",
+                        "corrIBAN": "TR190006200029500006288869"
+                      }
+                    },
+                    {
+                      "enrichmentCode": "THE",
+                      "enrichmentValue": {
+                        "moduleName": "THE",
+                        "firmOriginalText1": "202012300145504",
+                        "txnId": "",
+                        "ustrId": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "MUS",
+                      "enrichmentValue": {
+                        "moduleName": "MUS",
+                        "nameSurnameText": "DURU LTD ",
+                        "corrNameSurnameText": "DURU LTD "
+                      }
+                    },
+                    {
+                      "enrichmentCode": "HES",
+                      "enrichmentValue": {
+                        "moduleName": "HES",
+                        "accountMainType": "M",
+                        "accSubType": "S",
+                        "accType": "A",
+                        "productCode": "VDSTDUI",
+                        "subProductCode": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "DEK",
+                      "enrichmentValue": {
+                        "moduleName": "DEK",
+                        "detailText": ""
+                      }
+                    }
+                  ]
+                },
+                {
+                  "customerNum": 45195461,
+                  "customerName": "DURU LTD ",
+                  "VKN": 1981497602,
+                  "TCKN": null,
+                  "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+                  "unitNum": 295,
+                  "accountNum": 9805200,
+                  "currencyCode": null,
+                  "IBAN": "TR630006200029500009805200",
+                  "activityDate": "2020-10-27",
+                  "valueDate": "2020-10-27",
+                  "txnCreditDebitIndicator": "B",
+                  "amount": 179,
+                  "balanceAfterTransaction": 2221,
+                  "explanation": "0502956073357    Ref. HavaleCJ EUROPE GMBH",
+                  "transactionId": "XG05",
+                  "clasificationCode": "???",
+                  "corrVKN": null,
+                  "corrTCKN": null,
+                  "corrCustomerNum": null,
+                  "transactionReferenceId": "2020-12-25T15:21:16.76825",
+                  "transactionInstanceId": "2020-12-25T15:31:16.76825",
+                  "enrichmentInformation": [
+                    {
+                      "enrichmentCode": "CORRACNT",
+                      "enrichmentValue": {
+                        "moduleName": "CORRACNT",
+                        "productType": "Account",
+                        "corrAccountNum": null,
+                        "corrUnitNum": null,
+                        "corrIBAN": "TR240009200000000002014033"
+                      }
+                    },
+                    {
+                      "enrichmentCode": "MUS",
+                      "enrichmentValue": {
+                        "moduleName": "MUS",
+                        "nameSurnameText": "DURU LTD ",
+                        "corrNameSurnameText": null
+                      }
+                    },
+                    {
+                      "enrichmentCode": "HES",
+                      "enrichmentValue": {
+                        "moduleName": "HES",
+                        "accountMainType": "M",
+                        "accSubType": "S",
+                        "accType": "K",
+                        "productCode": "DTHSFTI",
+                        "subProductCode": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "DIM",
+                      "enrichmentValue": {
+                        "moduleName": "DIM",
+                        "firmOriginalText1": "USD 200030009940601",
+                        "ustrId": "PAYR:00023111544/BENR:REF.BFO1//BARLAS EITIM DANMANLK BILG. HIZM. T"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "customerNum": 45245447,
+                  "customerName": "DURU LTD ",
+                  "VKN": 1194136989,
+                  "TCKN": null,
+                  "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+                  "unitNum": 295,
+                  "accountNum": 6291296,
+                  "currencyCode": "TL",
+                  "IBAN": "TR620006200029500006291296",
+                  "activityDate": "2020-12-25",
+                  "valueDate": "2020-12-25",
+                  "txnCreditDebitIndicator": "B",
+                  "amount": 0.92,
+                  "balanceAfterTransaction": 9834929.53,
+                  "explanation": "KESINTI VE EKLERI-DOVIZ ISLEMLERI",
+                  "transactionId": "GCD1",
+                  "clasificationCode": "NCOM",
+                  "corrVKN": null,
+                  "corrTCKN": null,
+                  "corrCustomerNum": null,
+                  "transactionReferenceId": "2020-12-25T14:19:39.629065",
+                  "transactionInstanceId": "2020-12-25T14:19:40.56661",
+                  "enrichmentInformation": [
+                    {
+                      "enrichmentCode": "HES",
+                      "enrichmentValue": {
+                        "moduleName": "HES",
+                        "accountMainType": "M",
+                        "accSubType": "S",
+                        "accType": "A",
+                        "productCode": "VDSTDUI",
+                        "subProductCode": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "MUS",
+                      "enrichmentValue": {
+                        "moduleName": "MUS",
+                        "nameSurnameText": "DURU LTD ",
+                        "corrNameSurnameText": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "customerNum": 45245447,
+                  "customerName": "DURU LTD ",
+                  "VKN": 1194136989,
+                  "TCKN": null,
+                  "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+                  "unitNum": 295,
+                  "accountNum": 6291296,
+                  "currencyCode": "TL",
+                  "IBAN": "TR620006200029500006291296",
+                  "activityDate": "2020-12-25",
+                  "valueDate": "2020-12-25",
+                  "txnCreditDebitIndicator": "B",
+                  "amount": 92.14,
+                  "balanceAfterTransaction": 9834930.45,
+                  "explanation": "INT DOVIZ ALIS  6291296 - 6153564 EUR:9.21410",
+                  "transactionId": "GCD1",
+                  "clasificationCode": "??",
+                  "corrVKN": "1194136989",
+                  "corrTCKN": null,
+                  "corrCustomerNum": 45245447,
+                  "transactionReferenceId": "2020-12-25T14:19:39.629065",
+                  "transactionInstanceId": "2020-12-25T14:19:40.450429",
+                  "enrichmentInformation": [
+                    {
+                      "enrichmentCode": "MUS",
+                      "enrichmentValue": {
+                        "moduleName": "MUS",
+                        "nameSurnameText": "DURU LTD ",
+                        "corrNameSurnameText": "DURU LTD "
+                      }
+                    },
+                    {
+                      "enrichmentCode": "HES",
+                      "enrichmentValue": {
+                        "moduleName": "HES",
+                        "accountMainType": "M",
+                        "accSubType": "S",
+                        "accType": "A",
+                        "productCode": "VDSTDUI",
+                        "subProductCode": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "DOV",
+                      "enrichmentValue": {
+                        "moduleName": "DOV",
+                        "processRate": "9.214100"
+                      }
+                    },
+                    {
+                      "enrichmentCode": "CORRACNT",
+                      "enrichmentValue": {
+                        "moduleName": "CORRACNT",
+                        "productType": "Account",
+                        "corrAccountNum": "6153564",
+                        "corrUnitNum": "295",
+                        "corrIBAN": "TR400006200029500006153564"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "customerNum": 45245447,
+                  "customerName": "DURU LTD ",
+                  "VKN": 1194136989,
+                  "TCKN": null,
+                  "productId": "9d5de526-e32c-5cc7-81ce-545b93ade759",
+                  "unitNum": 295,
+                  "accountNum": 6291296,
+                  "currencyCode": "TL",
+                  "IBAN": "TR620006200029500006291296",
+                  "activityDate": "2020-12-25",
+                  "valueDate": "2020-12-25",
+                  "txnCreditDebitIndicator": "B",
+                  "amount": 560.7,
+                  "balanceAfterTransaction": 9835061.14,
+                  "explanation": "Para Transferi ELMP-EFT                             - 0140008",
+                  "transactionId": "ELMP",
+                  "clasificationCode": "NTHE",
+                  "corrVKN": null,
+                  "corrTCKN": null,
+                  "corrCustomerNum": null,
+                  "transactionReferenceId": "2020-12-25T14:15:14.008745",
+                  "transactionInstanceId": "2020-12-25T14:15:14.440521",
+                  "enrichmentInformation": [
+                    {
+                      "enrichmentCode": "CORRACNT",
+                      "enrichmentValue": {
+                        "moduleName": "CORRACNT",
+                        "productType": "Account",
+                        "corrAccountNum": null,
+                        "corrUnitNum": null,
+                        "corrIBAN": "TR470004600036888000060447"
+                      }
+                    },
+                    {
+                      "enrichmentCode": "THE",
+                      "enrichmentValue": {
+                        "moduleName": "THE",
+                        "firmOriginalText1": "202012061215036",
+                        "txnId": "",
+                        "ustrId": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "MUS",
+                      "enrichmentValue": {
+                        "moduleName": "MUS",
+                        "nameSurnameText": "DURU LTD ",
+                        "corrNameSurnameText": "HAN LTD "
+                      }
+                    },
+                    {
+                      "enrichmentCode": "HES",
+                      "enrichmentValue": {
+                        "moduleName": "HES",
+                        "accountMainType": "M",
+                        "accSubType": "S",
+                        "accType": "A",
+                        "productCode": "VDSTDUI",
+                        "subProductCode": ""
+                      }
+                    },
+                    {
+                      "enrichmentCode": "EFT",
+                      "enrichmentValue": {
+                        "moduleName": "EFT",
+                        "corrBankNum": "46",
+                        "corrUnitNum": "90001",
+                        "corrBankCityNum": "999",
+                        "referenceNum": "140008",
+                        "valueDate": "20201225",
+                        "msgType": "KRED",
+                        "senderIBANEFT": "TR620006200029500006291296",
+                        "receiverIBANEFT": "TR470004600036888000060447",
+                        "senderName": "DURU LTD",
+                        "receiverName": " HAN LTD ",
+                        "remark": "TRANSFER ELMP-EFT",
+                        "senderVKN": "1194136989",
+                        "corrAccountNum": "TR620006200029500006291296",
+                        "corrGoAddress": "TR470004600036888000060447",
+                        "rejectedDate": null,
+                        "rejectedCode": null,
+                        "rejectedMsgReferenceNum": null
+                      }
+                    },
+                    {
+                      "enrichmentCode": "DEK",
+                      "enrichmentValue": {
+                        "moduleName": "DEK",
+                        "detailText": ""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Invalid request.   \n\n### Messages:  \n  - **2** - Consent id bilgisi zorunludur. \n  - **4** - Vermis oldugunuz clientId-consentId bilgileri hatalidir. Lutfen kontrol ediniz. \n  - **5** - Sube ve Hesap numaralari birlikte gonderilmelidir. Lutfen kontrol ediniz \n  - **6** - Hesap bilgisi hatalidir. Lutfen kontrol ediniz.          \n  - **13** - Hesap bilgisi ile Iban bilgisi uyumsuzdur. Lutfen kontrol ediniz \n  - **15** - Transactionid bilgisi hatalidir. Lutfen kontrol ediniz \n  - **18** - Baslangic-Bitis tarih araligi 30 gunden fazla olamaz. \n  - **19** - Tarih bilgisi hatalidir. Lutfen kontrol ediniz. \n  - **21** - Tarih bilgileri formati hatalidir. Lutfen kontrol ediniz. \n  - **30** - Page Size alani 500 den buyuk olamaz.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Result"
+            },
+            "example": {
+              "result": {
+                "returnCode": 400,
+                "reasonCode": "0",
+                "messageText": "Invalid request"
+              }
+            }
+          }
+        }
+      },
+      "InvalidCredentials": {
+        "description": "Invalid Credentials",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Result"
+            },
+            "example": {
+              "result": {
+                "returnCode": 401,
+                "reasonCode": "0",
+                "messageText": "Invalid credentials"
+              }
+            }
+          }
+        }
+      },
+      "MethodNotAllowed": {
+        "description": "Method not allowed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Result"
+            },
+            "example": {
+              "result": {
+                "returnCode": 405,
+                "reasonCode": "0",
+                "messageText": "{http.method} Method not Allowed"
+              }
+            }
+          }
+        }
+      },
+      "ApiPlanLimitExceeded": {
+        "description": "API plan limit exceeded.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Result"
+            },
+            "example": {
+              "result": {
+                "returnCode": 429,
+                "reasonCode": "0",
+                "messageText": "API plan limit exceeded"
+              }
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal Server error.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Result"
+            },
+            "example": {
+              "result": {
+                "returnCode": 500,
+                "reasonCode": "0",
+                "messageText": "Internal Server error"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "garanti-bbva-api-integration",
+  "version": "1.0.0",
+  "description": "Node.js test client for Garanti BBVA Account Transactions API integration",
+  "main": "src/api-client.js",
+  "scripts": {
+    "test": "node src/api-client.js",
+    "start": "node src/api-client.js",
+    "dev": "node --inspect src/api-client.js"
+  },
+  "keywords": [
+    "garanti-bbva",
+    "banking-api",
+    "oauth2",
+    "account-transactions",
+    "fintech",
+    "api-integration"
+  ],
+  "author": "Your Development Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/garanti-bbva-api-integration.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/garanti-bbva-api-integration/issues"
+  },
+  "homepage": "https://github.com/your-org/garanti-bbva-api-integration#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
